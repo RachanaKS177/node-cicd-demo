@@ -5,10 +5,10 @@
 
   vars:
     app_name: appdemo
-    app_repo: https://github.com/RachanaKS177/appdemo.git
+    app_repo: https://github.com/RachanaKS177/node-cicd-demo.git
     app_path: /var/www/appdemo
     node_version: "18.x"
-    app_user: rachanaks  # ✅ Corrected your system username
+    app_user: rachanaks  # Adjust to match your system user
 
   tasks:
     - name: Install prerequisites
@@ -34,7 +34,7 @@
       git:
         repo: "{{ app_repo }}"
         dest: "{{ app_path }}"
-        version: main
+        version: main  # Or change to your actual branch name
         force: yes
 
     - name: Set correct ownership of application files
