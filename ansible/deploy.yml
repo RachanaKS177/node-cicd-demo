@@ -1,0 +1,73 @@
+- name: Deploy Node.js Application Locally
+  hosts: local
+  connection: local
+  become: yes
+
+  vars:
+    app_name: appdemo
+    app_repo: https://github.com/RachanaKS177/appdemo.git
+    app_path: /var/www/appdemo
+    node_version: "18.x"
+    app_user: rachanaks  # ✅ Corrected your system username
+
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name:
+          - curl
+          - git
+          - build-essential
+        state: present
+        update_cache: yes
+
+    - name: Add Node.js APT repository
+      shell: curl -fsSL https://deb.nodesource.com/setup_{{ node_version }} | bash -
+      args:
+        executable: /bin/bash
+
+    - name: Install Node.js
+      apt:
+        name: nodejs
+        state: present
+
+    - name: Clone application repository
+      git:
+        repo: "{{ app_repo }}"
+        dest: "{{ app_path }}"
+        version: main
+        force: yes
+
+    - name: Set correct ownership of application files
+      file:
+        path: "{{ app_path }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        recurse: yes
+
+    - name: Install application dependencies
+      npm:
+        path: "{{ app_path }}"
+      become_user: "{{ app_user }}"
+
+    - name: Install PM2 globally
+      npm:
+        name: pm2
+        global: yes
+
+    - name: Start app using PM2
+      shell: pm2 start app.js --name "{{ app_name }}"
+      args:
+        chdir: "{{ app_path }}"
+      become_user: "{{ app_user }}"
+
+    - name: Save PM2 process list
+      shell: pm2 save
+      become_user: "{{ app_user }}"
+
+    - name: Configure PM2 to start on boot
+      shell: pm2 startup systemd -u {{ app_user }} --hp /home/{{ app_user }}
+      register: pm2_startup
+
+    - name: Execute PM2 startup command
+      shell: "{{ pm2_startup.stdout_lines[-1] }}"
+      when: pm2_startup.stdout_lines is defined
