@@ -68,7 +68,10 @@
       shell: pm2 startup systemd -u {{ app_user }} --hp /home/{{ app_user }}
       register: pm2_startup
 
-    - name: Execute PM2 startup command
-      shell: "{{ pm2_startup.stdout_lines[-1] | regex_replace('^\\$\\s*', '') }}"
-      when: pm2_startup.stdout_lines is defined
+    - name: Start app using PM2
+      shell: pm2 start index.js --name "{{ app_name }}" -f
+      args:
+      chdir: "{{ app_path }}"
+      become_user: "{{ app_user }}"
+
 
