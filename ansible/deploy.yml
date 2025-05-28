@@ -8,7 +8,7 @@
     app_repo: https://github.com/RachanaKS177/node-cicd-demo.git
     app_path: /var/www/appdemo
     node_version: "18.x"
-    app_user: rachanaks  # Adjust to match your system user
+    app_user: rachanaks  
 
   tasks:
     - name: Install prerequisites
@@ -33,8 +33,8 @@
     - name: Clone application repository
       git:
         repo: "{{ app_repo }}"
-        dest: "{{ app_path }}"
-        version: main  # Or change to your actual branch name
+        dest: "{{ app_path }}/node-cicd-demo"
+        version: main
         force: yes
 
     - name: Set correct ownership of application files
@@ -45,9 +45,9 @@
         recurse: yes
 
     - name: Install application dependencies
-      npm:
-        path: "{{ app_path }}"
-      become_user: "{{ app_user }}"
+      command: npm install
+      args:
+        chdir: "{{ app_path }}/node-cicd-demo"
 
     - name: Install PM2 globally
       npm:
@@ -55,9 +55,9 @@
         global: yes
 
     - name: Start app using PM2
-      shell: pm2 start app.js --name "{{ app_name }}"
+      shell: pm2 start index.js --name "{{ app_name }}"
       args:
-        chdir: "{{ app_path }}"
+        chdir: "{{ app_path }}/node-cicd-demo"
       become_user: "{{ app_user }}"
 
     - name: Save PM2 process list
