@@ -34,7 +34,7 @@
       git:
         repo: "{{ app_repo }}"
         dest: "{{ app_path }}/node-cicd-demo"
-        version: main
+        version: master
         force: yes
 
     - name: Set correct ownership of application files
