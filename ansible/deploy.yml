@@ -8,7 +8,7 @@
     app_repo: https://github.com/RachanaKS177/node-cicd-demo.git
     app_path: /var/www/appdemo
     node_version: "18.x"
-    app_user: rachanaks  
+    app_user: rachanaks
 
   tasks:
     - name: Install prerequisites
@@ -39,7 +39,7 @@
 
     - name: Set correct ownership of application files
       file:
-        path: "{{ app_path }}"
+        path: "{{ app_path }}/node-cicd-demo"
         owner: "{{ app_user }}"
         group: "{{ app_user }}"
         recurse: yes
@@ -48,14 +48,15 @@
       command: npm install
       args:
         chdir: "{{ app_path }}/node-cicd-demo"
+      become_user: "{{ app_user }}"
 
     - name: Install PM2 globally
       npm:
         name: pm2
         global: yes
 
-    - name: Start app using PM2
-      shell: pm2 start index.js --name "{{ app_name }}"
+    - name: Start app using PM2 (force restart if exists)
+      shell: pm2 start index.js --name "{{ app_name }}" -f
       args:
         chdir: "{{ app_path }}/node-cicd-demo"
       become_user: "{{ app_user }}"
@@ -68,10 +69,6 @@
       shell: pm2 startup systemd -u {{ app_user }} --hp /home/{{ app_user }}
       register: pm2_startup
 
-    - name: Start app using PM2
-      shell: pm2 start index.js --name "{{ app_name }}" -f
-      args:
-      chdir: "{{ app_path }}"
-      become_user: "{{ app_user }}"
-
-
+    - name: Execute PM2 startup command
+      shell: "{{ pm2_startup.stdout_lines[-1] | regex_replace('^\\$\\s*', '') }}"
+      when: pm2_startup.stdout_lines is defined
