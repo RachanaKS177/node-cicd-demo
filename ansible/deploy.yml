@@ -69,5 +69,6 @@
       register: pm2_startup
 
     - name: Execute PM2 startup command
-      shell: "{{ pm2_startup.stdout_lines[-1] }}"
+      shell: "{{ pm2_startup.stdout_lines[-1] | regex_replace('^\\$\\s*', '') }}"
       when: pm2_startup.stdout_lines is defined
+
